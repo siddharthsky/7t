@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF ↔ JPEG Converter</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      margin: 0 5px;
+    }
+
+    .tab.active {
+      background: #3b82f6;
+    }
+
+    input {
+      width: 100%;
+      margin: 15px 0;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #22c55e;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+
+    .status {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>PDF ↔ JPEG Converter</h1>
+
+  <div class="tabs">
+    <div class="tab active" id="pdfTab">PDF → JPEG</div>
+    <div class="tab" id="imgTab">JPEG → PDF</div>
+  </div>
+
+  <input type="file" id="fileInput" multiple>
+  <button onclick="processFiles()">Convert</button>
+
+  <div class="status" id="status">Select files to begin</div>
+</div>
+
+<script>
+let mode = 'pdf';
+
+const pdfTab = document.getElementById('pdfTab');
+const imgTab = document.getElementById('imgTab');
+
+pdfTab.onclick = () => {
+  mode = 'pdf';
+  pdfTab.classList.add('active');
+  imgTab.classList.remove('active');
+};
+
+imgTab.onclick = () => {
+  mode = 'img';
+  imgTab.classList.add('active');
+  pdfTab.classList.remove('active');
+};
+
+async function processFiles() {
+  const input = document.getElementById('fileInput');
+  const status = document.getElementById('status');
+
+  if (!input.files.length) {
+    status.innerText = 'Please select files';
+    return;
+  }
+
+  if (mode === 'pdf') {
+    status.innerText = 'Converting PDF to images...';
+    await pdfToImages(input.files[0]);
+  } else {
+    status.innerText = 'Converting images to PDF...';
+    await imagesToPDF(input.files);
+  }
+}
+
+async function pdfToImages(file) {
+  const zip = new JSZip();
+  const pdfData = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2 });
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: context, viewport }).promise;
+
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const base64 = imgData.split(',')[1];
+
+    zip.file(`page_${i}.jpg`, base64, { base64: true });
+  }
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  saveAs(blob, 'images.zip');
+  document.getElementById('status').innerText = 'Done! ZIP downloaded.';
+}
+
+async function imagesToPDF(files) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const imgData = await readFile(file);
+
+    const img = new Image();
+    img.src = imgData;
+
+    await new Promise(res => img.onload = res);
+
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (img.height * width) / img.width;
+
+    if (i !== 0) pdf.addPage();
+    pdf.addImage(img, 'JPEG', 0, 0, width, height);
+  }
+
+  pdf.save('output.pdf');
+  document.getElementById('status').innerText = 'PDF downloaded.';
+}
+
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+
+</body>
+</html>

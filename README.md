@@ -24,6 +24,18 @@
     </td>
     </tr>
     <tr>
+    <td>📄 <strong>PDF ↔ JPEG Converter</strong></td>
+    <td>
+      Convert PDFs to high-quality JPEG images (auto-zipped for multi-page files) and merge multiple JPEGs into a single PDF.
+      Features a modern UI, folder upload support, progress tracking, and adjustable image quality (HD / compressed).
+    </td>
+    <td align="center">
+      <a href="https://siddharthsky.github.io/7t/3/pdf-jpeg-converter.html">
+        <img src="https://img.shields.io/badge/Convert-Files-22c55e?style=for-the-badge&logo=adobeacrobatreader&logoColor=white"/>
+      </a>
+    </td>
+  </tr>
+    <tr>
       <td>🍿 <strong>IMDb Parental Guide</strong></td>
       <td>An interactive web app to search for movies and TV series and view parental guide details.</td>
       <td align="center"><a href="https://siddharthsky.github.io/IMDb-parental-guide-search/"><img src="https://img.shields.io/badge/Search-IMDb-yellow?style=for-the-badge" alt="Search IMDb"/></a></td>

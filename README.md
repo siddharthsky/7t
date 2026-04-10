@@ -27,7 +27,6 @@
     <td>📄 <strong>PDF ↔ JPEG Converter</strong></td>
     <td>
       Convert PDFs to high-quality JPEG images (auto-zipped for multi-page files) and merge multiple JPEGs into a single PDF.
-      Features a modern UI, folder upload support, progress tracking, and adjustable image quality (HD / compressed).
     </td>
     <td align="center">
       <a href="https://siddharthsky.github.io/7t/3/pdf-jpeg-converter.html">
